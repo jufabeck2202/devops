@@ -4,7 +4,6 @@ Based on _Introduction to Kubernetes on the Edge with K3s_
 ## Build and publish App using Docker
 ```
 docker build -t flask-app:0.1.1 .
-
 ```
 ```
 docker login --username <username>
@@ -71,7 +70,6 @@ kubectl apply -f ingress.yaml
 ### Port forward Treafik
 ```
 kubectl port-forward -n kube-system service/traefik 8080:80
-
 ```
 ## Add Ingress with TLS
 Add a DNS host name to the Ingress record 
@@ -81,7 +79,6 @@ kubectl apply -f ingress-host.yaml
 ### Port forward Treafik
 ```
 kubectl port-forward -n kube-system service/traefik 8080:80
-
 ```
 ## Run Cron Job
 See yaml

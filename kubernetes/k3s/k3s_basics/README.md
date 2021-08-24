@@ -1,6 +1,23 @@
 # k3s basics
 Based on _Introduction to Kubernetes on the Edge with K3s_
 
+
+- [k3s basics](#k3s-basics)
+	- [Build and publish App using Docker](#build-and-publish-app-using-docker)
+	- [Create Pod](#create-pod)
+		- [Forward Port](#forward-port)
+		- [Get logs](#get-logs)
+		- [Get Ip](#get-ip)
+	- [Add Service](#add-service)
+		- [Now forward service traffic](#now-forward-service-traffic)
+	- [Add Deployment](#add-deployment)
+		- [See logs](#see-logs)
+		- [Now forward service traffic](#now-forward-service-traffic-1)
+	- [Add Ingress](#add-ingress)
+		- [Port forward Treafik](#port-forward-treafik)
+	- [Add Ingress with TLS](#add-ingress-with-tls)
+		- [Port forward Treafik](#port-forward-treafik-1)
+	- [Run Cron Job](#run-cron-job)
 ## Build and publish App using Docker
 ```
 docker build -t flask-app:0.1.1 .

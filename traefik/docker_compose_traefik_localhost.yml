@@ -1,0 +1,28 @@
+
+version: "3.7"
+
+services:
+  traefik:
+    image: "traefik:v2.1"
+    container_name: "traefik"
+    hostname: "traefik"
+    ports:
+      - "80:80"
+      - "8080:8080"
+      - "8081:8081"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "./traefik.yml:/traefik.yml:ro"
+      
+  whoami:
+    image: "traefik/whoami"
+    container_name: "simple-service"
+    labels:
+      - "traefik.enable=true"
+      - traefik.http.routers.cells.rule=Host(`localhost`) && Path(`/traefik`)
+
+
+networks:
+  default:
+    external:
+      name: $DEFAULT_NETWORK

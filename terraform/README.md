@@ -9,12 +9,11 @@ In `~/.aws/creadentails`:
 aws_access_key_id = A...Q
 aws_secret_access_key = Q...i
 ```
-and select credentials using `key_name`
-```hcl
-resource "aws_instance" "example"  {
-        ami                     = "example"
-        instance_type   = "t2.nano"
-        key_name = "terraform"
+and select credentials using `profile`
+```
+provider "aws" {
+  region                  = "your region"
+  profile                 = "profile_name"
 }
 ```
 

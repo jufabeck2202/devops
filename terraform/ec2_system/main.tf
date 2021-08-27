@@ -1,4 +1,7 @@
-
+provider "aws" {
+  region                  = "us-east-1"
+  profile                 = "beju"
+}
 data "aws_ami" "ubuntu" {
   most_recent = true
 

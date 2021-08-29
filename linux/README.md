@@ -112,7 +112,7 @@ Filesystems mounted at `/proc`, are called pseudo-filesystems because they have 
 
 The `/dev` directory contains device nodes, a type of pseudo-file used by most hardware and software devices, except for network devices.
 - `/dev/random` random numbers
-- `dev/sda1/` first partition
+- `/dev/sda1/` first partition
 
 The `/var` directory contains files that are expected to change in size and content as the system is running. 
 - `/var/log`system log files
@@ -282,13 +282,11 @@ cat somefile | less
 view 5 first lines
 ```
 head -5 /etc/default/grub
-
 ```
 ### tail
 view 5 last lines
 ```
 tail -5 /etc/default/grub
-
 ```
 To continually monitor new output in a growing log file:
 ```
@@ -320,3 +318,67 @@ Print first and seventh field of every line
 ```
 awk -F: '{ print $1 $7 }' /etc/passwd	
 ```
+Sort the lines in the specified file, according to the characters at the beginning of each line
+```
+sort <filename>	
+```
+Combine the two files, then sort the lines and display the output on the terminal
+```
+cat file1 file2 | sort	
+```
+Sort the lines in reverse order
+```
+sort -r <filename>	
+```
+Sort the lines by the 3rd field on each line instead of the beginning
+```
+sort -k 3 <filename>	
+```
+### uniq
+uniq removes duplicate consecutive lines in a text file and is useful for simplifying the text display.
+```
+sort file1 file2 | uniq > file3
+```
+count unique lines
+```
+uniq -c filename
+```
+### paste
+paste can be used to combine fields (such as name or phone number) from different files, as well as combine lines from multiple files.
+Go Line by line
+To paste contents from two files one can do:
+```
+paste file1 file2
+```
+The syntax to use a different delimiter is as follows:
+```
+$ paste -d, file1 file2
+```
+Common delimiters are 'space', 'tab', '|', 'comma', etc.
+
+### split
+```
+split inputfile dict_output
+```
+
+### count words
+```
+wc -l file
+```
+### grep
+grep is extensively used as a primary text searching tool. It scans files for specified patterns and can be used with regular expressions, as well as simple strings, as shown in the table:
+```
+grep [pattern] <filename>	
+```
+
+### other
+The tr utility is used to translate specified characters into other characters or to delete them.
+
+```
+tr '{}' '()' < inputfile > outputfile
+```
+Save to file AND display in terminal using tee
+```
+ls -l | tee newfile
+```
+

@@ -264,3 +264,59 @@ cat > <filename> << EOF
 > something
 > EOF
 ```
+### echo
+Clear and add text
+```
+echo beju > file
+```
+Append to text to file
+```
+cat beju >> file
+```
+### less
+Pipe file into less to view page by page
+```
+cat somefile | less
+```
+### head
+view 5 first lines
+```
+head -5 /etc/default/grub
+
+```
+### tail
+view 5 last lines
+```
+tail -5 /etc/default/grub
+
+```
+To continually monitor new output in a growing log file:
+```
+$ tail -f somefile.log
+```
+### sed
+used to modify the contents of a file or input stream, usually placing the contents into a new file or output stream
+
+Use sed to filter standard input, putting output on standard out
+```
+sed s/pattern/replace_string/g file1 > file2
+```
+```
+echo "I hate you" | sed s/hate/love/
+```
+Output to terminal using -e. Normally `sed` only replaces the first occurrence. To replace all use `\g`
+
+### awk
+awk is used to extract and then print specific contents of a file and is often used to construct reports. 
+Print entire file
+```
+awk '{ print $0 }' /etc/passwd
+```
+Print first field (column) of every line, separated by a space
+```
+awk -F: '{ print $1 }' /etc/passwd
+```
+Print first and seventh field of every line
+```
+awk -F: '{ print $1 $7 }' /etc/passwd	
+```

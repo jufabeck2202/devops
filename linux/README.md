@@ -382,3 +382,10 @@ Save to file AND display in terminal using tee
 ls -l | tee newfile
 ```
 
+## Networking
+set nameserver at `/etc/resolv.conf`
+
+information about a service using
+```
+host linuxfoundation.org
+```

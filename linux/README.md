@@ -227,9 +227,9 @@ chmod +x file
 - File ownership is changed by typing chown owner filename.
 - File group ownership is changed by typing chgrp group filename.
 ### Root Account
-Use `su` to launch a new shell using a root user
 
 Execute previous command with sudo using `!! sudo`
+
 
 ## Environment Variable
 Show value
@@ -388,4 +388,20 @@ set nameserver at `/etc/resolv.conf`
 information about a service using
 ```
 host linuxfoundation.org
+```
+see network interfaces
+```
+ifconfig
+```
+### dig
+get DNS information 
+```
+dig google.com
+```
+### curl
+
+### wget
+### scp
+```
+scp <localfile> <user@remotesystem>:/home/user/ 
 ```

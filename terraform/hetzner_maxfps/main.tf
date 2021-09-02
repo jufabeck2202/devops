@@ -16,16 +16,38 @@ provider "hcloud" {
   token = var.hcloud_token
 }
 
+
+variable "hcloud_token" {
+  description = "Hetzner API Token"
+  sensitive   = true
+}
+
+variable "num" {
+  description = "Number of Servers"
+  default     = 3
+}
+variable "ip_range" {
+  description = "IP Range for internal network"
+  default     = "10.0.1.0/24"
+}
+
+variable "ssh_pub_key_path" {
+  description = "Path to the pub ssh key. Same key need to be used to upload using ansible"
+}
+
+
 resource "random_pet" "names" {
   count = var.num
 }
 
+### Servers
 resource "hcloud_ssh_key" "default" {
   name       = "default"
   public_key = file(var.ssh_pub_key_path)
 }
+
 data "template_file" "user_data" {
-  template = "${file("${path.module}/user_data.tpl")}"
+  template = file("${path.module}/user_data.tpl")
   vars = {
     public_key = "${hcloud_ssh_key.default.public_key}"
   }
@@ -43,6 +65,7 @@ resource "hcloud_server" "server" {
   user_data = data.template_file.user_data.template
 }
 
+### load balancers
 resource "hcloud_load_balancer" "web_lb" {
   name               = "beju_load_Balancer"
   load_balancer_type = "lb11"
@@ -62,24 +85,6 @@ resource "hcloud_load_balancer" "web_lb" {
   algorithm {
     type = "round_robin"
   }
-}
-
-resource "hcloud_network" "hc_private" {
-  name     = "hc_private"
-  ip_range = var.ip_range
-}
-
-resource "hcloud_server_network" "web_network" {
-  count     = var.num
-  server_id = hcloud_server.server[count.index].id
-  subnet_id = hcloud_network_subnet.hc_private_subnet.id
-}
-
-resource "hcloud_network_subnet" "hc_private_subnet" {
-  network_id   = hcloud_network.hc_private.id
-  type         = "cloud"
-  network_zone = "eu-central"
-  ip_range     = var.ip_range
 }
 
 resource "hcloud_load_balancer_service" "web_lb_service" {
@@ -106,6 +111,26 @@ resource "hcloud_load_balancer_network" "web_network" {
   enable_public_interface = "true"
 }
 
+### Network
+resource "hcloud_network" "hc_private" {
+  name     = "hc_private"
+  ip_range = var.ip_range
+}
+
+resource "hcloud_server_network" "web_network" {
+  count     = var.num
+  server_id = hcloud_server.server[count.index].id
+  subnet_id = hcloud_network_subnet.hc_private_subnet.id
+}
+
+resource "hcloud_network_subnet" "hc_private_subnet" {
+  network_id   = hcloud_network.hc_private.id
+  type         = "cloud"
+  network_zone = "eu-central"
+  ip_range     = var.ip_range
+}
+
+### Output
 output "load_balancer_ip" {
   description = "Load balancer IP address"
   value       = hcloud_load_balancer.web_lb.ipv4
@@ -119,6 +144,7 @@ output "web_servers_status" {
 }
 
 output "web_servers_ips" {
+  description = "individual ips"
   value = {
     for server in hcloud_server.server :
     server.name => server.ipv4_address

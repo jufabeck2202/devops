@@ -51,7 +51,6 @@ spec:
         ports:
         - containerPort: 8080
 ```
-###
 Get yaml with status:
 ```
 kubectl get deployment nginx-deployment -o yaml
@@ -85,5 +84,19 @@ Get more information
 ```
 kubectl get service <servicename>
 ```
+## Namespaces
+### Using Kubens
+Set default namespace using 
+```
+kubens bejus-namespace
+```
+## K8s Services
+Pods come and go but Services stay.
+Service IPs stay, even if the pod stays. Also used for loadbalancing
+### ClusterIP Services
 
+### Headless Services
 
+### NodePort Services
+
+### LoadBalancer Services

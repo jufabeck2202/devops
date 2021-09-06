@@ -13,6 +13,11 @@ kubectl get secret
 normally you put the service inside the deployment.
 
 ## Deploy Mongo Express:
-### Pass secret from Mongo
 ### Pass URL using Config Map
 external configuration that is centralized
+### External and Internal IP-Adress
+Give Cluster and external ip address using loadbalancer.
+In minikube you need to assign a service an IP
+```
+mongo-express-service
+```

@@ -1,4 +1,6 @@
 # Terraform 
+> Infrastructure as Code
+
 
 ## Configuration
 
@@ -17,7 +19,7 @@ provider "aws" {
 }
 ```
 
-### Dependencies Graüh
+### Dependencies Graph
 ```
 terraform graph | dot -Tpng > graph.png
 ```

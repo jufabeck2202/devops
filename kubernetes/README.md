@@ -186,3 +186,35 @@ status:
     - ip: 192.0.2.127
 ```
 Traffic from the external load balancer is directed at the backend Pods. The cloud provider decides how it is load balanced.
+
+## k8s Ingress
+IP Address and port is not open. Request will first go through the Ingress and directed to the Service.
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: minimal-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  rules:
+  - host: myapp.com
+    http:
+      paths:
+        backend:
+          service:
+            name: test
+            port:
+              number: 80
+```
+The ingress will be redirected to the Internal Service.
+The host needs to be valid domain address and mapped to the nodes entry point.
+### Ingress Controller
+Used for Ingress Management.
+Evaluate rules and manage all redirection. Which rule for which request.
+
+Need to provide a proxy server as entrypoint to cluster and open ports. 
+The proxy server will forward the request to the entrypoint.
+
+### Create Ingress Point to access Dashboard
+

@@ -92,11 +92,97 @@ kubens bejus-namespace
 ```
 ## K8s Services
 Pods come and go but Services stay.
-Service IPs stay, even if the pod stays. Also used for loadbalancing
+Service IPs stay, even if the pod stays. Also used for load balancing.
+
 ### ClusterIP Services
-
+ClusterIP is the default type.
+Service is accessible at specific IP and port.
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: my-service
+spec:
+  selector:
+    app: MyApp
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 9376
+```
+The ports are identified using selectors.
+It must match ALL selectors, not just one. The `targetPort` is the port of the service. 
+You can check the endpoints of the service using 
+```
+kubectl get endpoints
+```
+#### Multi Port Service:
+if multiple ports are open in a service you need to name the ports.
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: my-service
+spec:
+  selector:
+    app: MyApp
+  ports:
+    - name: http
+      protocol: TCP
+      port: 80
+      targetPort: 9376
+    - name: https
+      protocol: TCP
+      port: 443
+      targetPort: 9377
+```
 ### Headless Services
+Client wants to communicate with 1 specific pods.
+Not randomly selected, for example in DB scenarios. The Pod replicas are not identical. 
+Figure IP-Address of specific POD. 
+In this case, you can create what are termed "headless" Services, by explicitly specifying "None" for the cluster IP (.spec.clusterIP).
 
+Set ClusterIP to none, so no clusterIP is assigned to the service.
 ### NodePort Services
-
+Type of the Service. `type: NodePort`. Makes External traffic accessible to fixed port on each 
+Worker Node. Browser request will come directly to Worker Node ip.
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: my-service
+spec:
+  type: NodePort
+  selector:
+    app: MyApp
+  ports:
+      # By default and for convenience, the `targetPort` is set to the same value as the `port` field.
+    - port: 80
+      targetPort: 80
+      # Optional field
+      # By default and for convenience, the Kubernetes control plane will allocate a port from a range (default: 30000-32767)
+      nodePort: 30007
+```
 ### LoadBalancer Services
+Load Balancer Service Type.
+The Service becomes accessible using a load Balancer is external.
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: my-service
+spec:
+  selector:
+    app: MyApp
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 9376
+  clusterIP: 10.0.171.239
+  type: LoadBalancer
+status:
+  loadBalancer:
+    ingress:
+    - ip: 192.0.2.127
+```
+Traffic from the external load balancer is directed at the backend Pods. The cloud provider decides how it is load balanced.

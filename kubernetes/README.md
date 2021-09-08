@@ -217,4 +217,31 @@ Need to provide a proxy server as entrypoint to cluster and open ports.
 The proxy server will forward the request to the entrypoint.
 
 ### Create Ingress Point to access Dashboard
+> using minikube
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: dashboard-ingress
+  namespace: kubernetes-dashboard
+spec:
+  rules:
+  - host: dashboard.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: kubernetes-dashboard
+            port:
+              number: 80
+```
 
+Get ingress
+```
+kubectl get ingress -n kubernetes-dashboard
+```
+after that get IP address and add to `/etc/hosts` 
+
+## Storage

@@ -245,3 +245,186 @@ kubectl get ingress -n kubernetes-dashboard
 after that get IP address and add to `/etc/hosts` 
 
 ## Storage
+### Local vs Remote Types
+Local volume types not good.
+Always all the time use remote
+### Persistent Volumes Claims
+Configure applications to use a persistent volume using
+a claim
+
+```yaml
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: pvc-name
+spec:
+  storageClassName: manual
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+``` 
+The volume that matches this claim will be used.
+You need to specify this in the pod definition
+```yml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: mypod
+spec:
+  containers:
+    - name: myfrontend
+      image: nginx
+      volumeMounts:
+      - mountPath: "/var/www/html"
+        name: mypd
+  volumes:
+    - name: mypd
+      persistentVolumeClaim:
+        claimName: pvc-name
+```
+Pods access storage through a claim. The claim will find a persistent volume.
+Claim must exist in the same namespace as the pod. 
+The volume will be mounted inside the pod afterwards. Container can read and write to the volume.
+
+### ConfigMap and Secret
+Managed by k8 directly. 
+```yaml
+apiVersion: v1
+kind: Secret
+metadata:
+    name: mongodb-secret
+type: Opaque
+data:
+    mongo-root-username: dXNlcm5hbWU=
+    mongo-root-password: cGFzc3dvcmQ=
+
+```
+Taking value of the username and password directly
+However these are individual values.
+#### Using file
+The mosquitto container has a default config file.
+We can overwrite the default file using the config-map and mounting the file into the container.
+
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mosquitto-config-file
+data:
+  mosquitto.conf: |
+    log_dest stdout
+    log_type all
+    log_timestamp true
+    listener 9001
+    
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mosquitto-secret-file
+type: Opaque
+data:
+  secret.file: |
+    c29tZXN1cGVyc2VjcmV0IGZpbGUgY29udGVudHMgbm9ib2R5IHNob3VsZCBzZWU=
+    
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mosquitto
+  labels:
+    app: mosquitto
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mosquitto
+  template:
+    metadata:
+      labels:
+        app: mosquitto
+    spec:
+      containers:
+      # for container mosquitto
+        - name: mosquitto
+          image: eclipse-mosquitto:1.6.2
+          ports:
+            - containerPort: 1883
+            #list of volumes we want to mount
+          volumeMounts:
+            - name: mosquitto-conf
+              mountPath: /mosquitto/config
+            - name: mosquitto-secret
+              mountPath: /mosquitto/secret  
+              readOnly: true
+      # volumes we want to mount into the container
+      volumes:
+        - name: mosquitto-conf
+          configMap:
+            name: mosquitto-config-file
+        - name: mosquitto-secret
+          secret:
+            secretName: mosquitto-secret-file    
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mosquitto
+  labels:
+    app: mosquitto
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mosquitto
+  template:
+    metadata:
+      labels:
+        app: mosquitto
+    spec:
+      containers:
+        - name: mosquitto
+          image: eclipse-mosquitto:1.6.2
+          ports:
+            - containerPort: 1883
+```
+
+### Storage Class
+
+
+
+
+### StatefulSet
+Component for stateful applications. 
+Like a Deployment, a StatefulSet manages Pods that are based on an identical container spec. Unlike a Deployment, a StatefulSet maintains a sticky identity for each of their Pods. These pods are created from the same spec, but are not interchangeable: each has a persistent identifier that it maintains across any rescheduling.
+
+## K8s Operators
+Statefull applications are more difficult. The replicas are not identical. 
+And it's different for every application.
+So statefull apps require more work.
+
+Operators are software extensions to Kubernetes that make use of custom resources to manage applications and their components. Operators follow Kubernetes principles, notably the control loop.
+
+Create an operator for that contains all the information to create, run, synchronize and update 
+a mysql cluster
+
+### set up prometheus architecture
+using an [operator](https://github.com/prometheus-community/helm-charts)
+
+```
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+```
+
+```
+helm install prom prometheus-community/kube-prometheus-stack
+```
+
+
+### Access Grafana
+```
+kubectl port-forward prom-grafana-74d9f655c4-cr2t7 3000
+```

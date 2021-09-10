@@ -10,7 +10,7 @@ variable "ssh_key" {}
 
 data "aws_ami" "amazon-linux-image" {
   most_recent = true
-  owners = ["099720109477"]
+  owners      = ["099720109477"]
 
   filter {
     name   = "name"
@@ -126,11 +126,11 @@ resource "aws_instance" "myapp-server" {
   }
 
   user_data = <<EOF
-                 #!/bin/bash
-                 apt-get update && apt-get install -y docker-ce
+     		#!/bin/bash
+                 apt-get update && apt-get install -y docker.io
                  systemctl start docker
-                 usermod -aG docker ec2-user
-                 docker run -p 8080:8080 nginx
+                 usermod -aG docker ubuntu
+                 docker run -p 8080:80 -d nginxdemos/hello
               EOF
 }
 
@@ -149,9 +149,9 @@ resource "aws_instance" "myapp-server-two" {
 
   user_data = <<EOF
                  #!/bin/bash
-                 apt-get update && apt-get install -y docker-ce
+                 apt-get update && apt-get install -y docker.io
                  systemctl start docker
-                 usermod -aG docker ec2-user
-                 docker run -p 8080:8080 nginx
+                 usermod -aG docker ubuntu
+                 docker run -p 8080:80 -d nginxdemos/hello
               EOF
 }

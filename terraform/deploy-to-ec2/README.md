@@ -1,1 +1,1 @@
-Deploy two ec2 with vpc and routing table, including docker. However currently not working
+Deploy two ec2 with vpc and routing table, including docker. However its currently not working

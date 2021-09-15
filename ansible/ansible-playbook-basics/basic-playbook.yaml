@@ -1,0 +1,17 @@
+---
+- name: Configure nginx web server
+  hosts: webserver
+  tasks:
+    - name: Update and upgrade apt packages
+      apt:
+        upgrade: yes
+        update_cache: yes
+        cache_valid_time: 86400
+    - name: install nginx server
+      apt:
+        name: nginx
+        state: latest
+    - name: start nginx server
+      service:
+        name: nginx
+        state: started

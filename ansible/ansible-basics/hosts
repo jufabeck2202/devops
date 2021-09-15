@@ -1,0 +1,6 @@
+[linodes]
+172.104.252.56  
+
+[linodes:vars]
+ansible_user=root
+ansible_ssh_private_key_file=~/.ssh/id_rsa

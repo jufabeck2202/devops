@@ -1,0 +1,19 @@
+---
+- name: Install node and npm
+  hosts: webserver
+  tasks:
+    - name: Update and upgrade apt packages
+      apt:
+        upgrade: yes
+        update_cache: yes
+        cache_valid_time: 86400
+    - name: install node and npm
+      apt:
+        pgk:
+          - nodejs
+          - npm
+
+- name: Deploy nodejs app
+  hosts: webservers
+  tasks:
+    -  name:

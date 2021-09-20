@@ -1,84 +1,63 @@
 const express = require("express");
 const Prometheus = require("prom-client");
+const cron = require("node-cron");
+const puppeteer = require("puppeteer");
 
 const app = express();
 const port = process.env.PORT || 3001;
 const metricsInterval = Prometheus.collectDefaultMetrics();
-const checkoutsTotal = new Prometheus.Counter({
-  name: "checkouts_total",
-  help: "Total number of checkouts",
-  labelNames: ["payment_method"],
-});
-const httpRequestDurationMicroseconds = new Prometheus.Histogram({
-  name: "http_request_duration_ms",
-  help: "Duration of HTTP requests in ms",
-  labelNames: ["method", "route", "code"],
-  buckets: [0.1, 5, 15, 50, 100, 200, 300, 400, 500], // buckets for response time from 0.1ms to 500ms
+let is_fetching = false;
+
+cron.schedule(" 0 */2 * * * *", async () => {
+  if (is_fetching) {
+    console.log("already Fetching");
+    return;
+  }
+  console.log("start fetching");
+
+  let end = fetchTime.startTimer();
+  is_fetching = true;
+  await fetchPortfolio();
+  is_fetching = false;
+  console.log("finished-fetching");
+  console.log(end())
 });
 
-const loginCounter = new client.Counter({
+const loginCounter = new Prometheus.Counter({
   name: "login_counter",
   help: "Number of times the exporter has logged in to parquet",
   labelNames: ["parquet", "money"],
 });
 
-const portfolioCounter = new client.Gauge({
+const portfolioCounter = new Prometheus.Gauge({
   name: "portfolio_value",
   help: "Total value of the portfolio",
   labelNames: ["parquet", "money"],
 });
 
-const investedCounter = new client.Gauge({
+const investedCounter = new Prometheus.Gauge({
   name: "invested_value",
   help: "Total value invested",
   labelNames: ["parquet", "money"],
 });
 
-const portfolioWinCounter = new client.Gauge({
+const portfolioWinCounter = new Prometheus.Gauge({
   name: "win_value",
   help: "Total win of the portfolio",
   labelNames: ["parquet", "money"],
 });
 
-const dividendCounter = new client.Gauge({
+const dividendCounter = new Prometheus.Gauge({
   name: "dividend_value",
   help: "received dividends",
   labelNames: ["parquet", "money"],
 });
 
-const fetch_time = new Prometheus.Histogram({
+const fetchTime = new Prometheus.Histogram({
   name: "fetch_time",
   help: "total time to fetch ",
   labelNames: ["parquet", "money"],
-  buckets: [5, 10, 15, 20, 25, 30, 35, 40, 45, 50], // buckets for response time from 0.1ms to 500ms
-});
-
-// Runs before each requests
-app.use((req, res, next) => {
-  res.locals.startEpoch = Date.now();
-  next();
-});
-
-app.get("/", (req, res, next) => {
-  setTimeout(() => {
-    res.json({ message: "Hello World!" });
-    next();
-  }, Math.round(Math.random() * 200));
-});
-
-app.get("/bad", (req, res, next) => {
-  next(new Error("My Error"));
-});
-
-app.get("/checkout", (req, res, next) => {
-  const paymentMethod = Math.round(Math.random()) === 0 ? "stripe" : "paypal";
-
-  checkoutsTotal.inc({
-    payment_method: paymentMethod,
-  });
-
-  res.json({ status: "ok" });
-  next();
+  buckets: [5, 10, 15, 20, 25, 30],
 });
 
 app.get("/metrics", async (req, res) => {
@@ -88,39 +67,79 @@ app.get("/metrics", async (req, res) => {
   res.end(data);
 });
 
-// Error handler
-app.use((err, req, res, next) => {
-  res.statusCode = 500;
-  // Do not expose your error in production
-  res.json({ error: err.message });
-  next();
-});
-
-// Runs after each requests
-app.use((req, res, next) => {
-  const responseTimeInMs = Date.now() - res.locals.startEpoch;
-
-  httpRequestDurationMicroseconds
-    .labels(req.method, req.route.path, res.statusCode)
-    .observe(responseTimeInMs);
-
-  next();
-});
-
 const server = app.listen(port, () => {
   console.log(`Example app listening on port ${port}!`);
 });
 
-// Graceful shutdown
-process.on("SIGTERM", () => {
-  clearInterval(metricsInterval);
+const cleanup = (value) => {
+  return Number(value.trim().replace(",", ".").replace(/[\$€]/g, ""));
+};
 
-  server.close((err) => {
-    if (err) {
-      console.error(err);
-      process.exit(1);
-    }
-
-    process.exit(0);
+const fetchPortfolio = async () => {
+  const browser = await puppeteer.launch({
+    headless: true,
+    args: ["--no-sandbox", "--disable-setuid-sandbox"],
+    executablePath: "/usr/bin/chromium-browser",
   });
-});
+  const page = await browser.newPage();
+  await page.goto("https://auth.parqet.com/u/login", {
+    waitUntil: "networkidle2",
+  });
+  await page.waitForXPath('//*[@id="username"]');
+
+  const username = await page.$x('//*[@id="username"]');
+  await username[0].type(process.env.EMAIL);
+
+  const password = await page.$x('//*[@id="password"]');
+  await password[0].type(process.env.PASSWORD);
+  const confirmButton = await page.$x(
+    "/html/body/div/main/section/div/div/div/form/div[2]/button"
+  );
+  console.log("logged in");
+  await Promise.all([await confirmButton[0].click()]);
+  await page.waitForXPath(
+    "/html/body/div/div/div/div[3]/main/div[2]/div/div/div[2]/div/div/div/div/div[2]/dl/div[1]/div/dd/span"
+  );
+
+  let portfolio = await page.$x(
+    "/html/body/div/div/div/div[3]/main/div[2]/div/div/div[2]/div/div/div/div/div[2]/dl/div[1]/div/dd/span"
+  );
+  let portfolio_value = await page.evaluate(
+    (el) => el.textContent,
+    portfolio[0]
+  );
+  let investiert = await page.$x(
+    "/html/body/div/div/div/div[3]/main/div[2]/div/div/div[2]/div/div/div/div/div[2]/dl/div[2]/div/dd/span"
+  );
+  let investiert_value = await page.evaluate(
+    (el) => el.textContent,
+    investiert[0]
+  );
+  let kursgewinne = await page.$x(
+    "/html/body/div/div/div/div[3]/main/div[2]/div/div/div[2]/div/div/div/div/div[2]/dl/div[3]/div/dd/span"
+  );
+  let kursgewinne_value = await page.evaluate(
+    (el) => el.textContent,
+    kursgewinne[0]
+  );
+  let dividenden = await page.$x(
+    "/html/body/div/div/div/div[3]/main/div[2]/div/div/div[2]/div/div/div/div/div[2]/dl/div[4]/div/dd/span"
+  );
+  let dividenden_value = await page.evaluate(
+    (el) => el.textContent,
+    dividenden[0]
+  );
+  console.log("got data");
+  portfolio_value = cleanup(portfolio_value);
+  investiert_value = cleanup(investiert_value);
+  kursgewinne_value = cleanup(kursgewinne_value);
+  dividenden_value = cleanup(dividenden_value);
+
+  portfolioCounter.set(portfolio_value);
+  investedCounter.set(investiert_value);
+  portfolioWinCounter.set(kursgewinne_value);
+  dividendCounter.set(dividenden_value);
+
+  await browser.close();
+  loginCounter.inc();
+};

@@ -16,6 +16,43 @@ const httpRequestDurationMicroseconds = new Prometheus.Histogram({
   buckets: [0.1, 5, 15, 50, 100, 200, 300, 400, 500], // buckets for response time from 0.1ms to 500ms
 });
 
+const loginCounter = new client.Counter({
+  name: "login_counter",
+  help: "Number of times the exporter has logged in to parquet",
+  labelNames: ["parquet", "money"],
+});
+
+const portfolioCounter = new client.Gauge({
+  name: "portfolio_value",
+  help: "Total value of the portfolio",
+  labelNames: ["parquet", "money"],
+});
+
+const investedCounter = new client.Gauge({
+  name: "invested_value",
+  help: "Total value invested",
+  labelNames: ["parquet", "money"],
+});
+
+const portfolioWinCounter = new client.Gauge({
+  name: "win_value",
+  help: "Total win of the portfolio",
+  labelNames: ["parquet", "money"],
+});
+
+const dividendCounter = new client.Gauge({
+  name: "dividend_value",
+  help: "received dividends",
+  labelNames: ["parquet", "money"],
+});
+
+const fetch_time = new Prometheus.Histogram({
+  name: "fetch_time",
+  help: "total time to fetch ",
+  labelNames: ["parquet", "money"],
+  buckets: [5, 10, 15, 20, 25, 30, 35, 40, 45, 50], // buckets for response time from 0.1ms to 500ms
+});
+
 // Runs before each requests
 app.use((req, res, next) => {
   res.locals.startEpoch = Date.now();

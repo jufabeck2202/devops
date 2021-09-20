@@ -4,6 +4,7 @@ async function helloWorld() {
   const browser = await puppeteer.launch({
     headless: true,
     args: ["--no-sandbox", "--disable-gpu"],
+    executablePath:'/usr/bin/chromium-browser'
   });
   const page = await browser.newPage();
 
